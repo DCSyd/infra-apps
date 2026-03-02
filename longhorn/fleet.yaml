@@ -1,0 +1,45 @@
+defaultNamespace: longhorn-system
+helm:
+  repo: https://charts.longhorn.io
+  chart: longhorn
+  version: v1.11.0
+  releaseName: longhorn
+  values:
+      csi:
+        attacherReplicaCount: 1
+        provisionerReplicaCount: 1
+        resizerReplicaCount: 1
+        snapshotterReplicaCount: 1
+      defaultSettings:
+        defaultDataLocality: best-efforts
+        defaultDataPath: /var/lib/rancher/longhorn
+        defaultReplicaCount: 1
+        deletingConfirmationFlag: true
+        replicaAutoBalance: least-effort
+      longhornUI:
+        replicas: 1
+      persistence:
+        backingImage:
+          enable: false
+        backupTargetName: default
+        dataEngine: v1
+        defaultClass: true
+        defaultClassReplicaCount: 1
+        defaultDataLocality: disabled
+diff:
+  comparePatches:
+  - apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: engineimages.longhorn.io
+    operations:
+    - {"op": "replace", "path": "/status"}
+  - apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: nodes.longhorn.io
+    operations:
+    - {"op": "replace", "path": "/status"}
+  - apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    name: volumes.longhorn.io
+    operations:
+    - {"op": "replace", "path": "/status"}
