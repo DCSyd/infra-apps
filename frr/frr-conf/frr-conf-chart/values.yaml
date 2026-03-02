@@ -1,0 +1,11 @@
+nodes:
+  ubuntu:
+    routerId: "192.168.10.11"
+    dummyInterfaceIp: "192.168.10.11"
+    bgpAS: "64530"
+    interface-1: "ens19"
+  ubuntu-2:
+    routerId: "192.168.10.12"
+    dummyInterfaceIp: "192.168.10.12"
+    bgpAS: "64530"
+    interface-1: "ens20"
