@@ -1,0 +1,90 @@
+{{- range $nodeName, $config := .Values.nodes }}
+---
+apiVersion: frrk8s.metallb.io/v1beta1
+kind: FRRConfiguration
+metadata:
+  # Generate a unique name for the resource (e.g., frr-conf-worker-01)
+  name: frr-conf-{{ $nodeName }}  
+  namespace: frr-k8s
+  labels:
+    managed-by: helm
+spec:
+  # ---------------------------------------------------------
+  # TARGETING LOGIC: Apply this config ONLY to this specific node
+  # ---------------------------------------------------------
+  nodeSelector:
+    matchLabels:
+      kubernetes.io/hostname: {{ $nodeName }}
+
+  # ---------------------------------------------------------
+  # BGP CONFIGURATION
+  # ---------------------------------------------------------
+  raw:
+    rawConfig: |-   
+      interface {{ index $config "interface-1" }}
+      ipv6 nd ra-interval 6
+      no ipv6 nd suppress-ra
+      exit
+      !
+      interface dummy0
+      ip address {{ $config.dummyInterfaceIp }}
+      exit
+      !
+      ip prefix-list pl-pod-cidr seq 10 permit 10.42.0.0/16 ge 24 le 24
+      ip prefix-list pl-lo-cidr seq 10 permit 192.168.10.0/24 ge 32 le 32
+      ip prefix-list pl-svc-cidr seq 10 permit 10.43.0.0/16 ge 16 le 32
+      ip prefix-list pl-api-vip seq 10 permit 192.168.8.8/32
+      !
+      route-map rm-adv-out permit 10
+      match ip address prefix-list pl-pod-cidr
+      match interface cilium_host
+      !
+      route-map rm-adv-out permit 20
+      match ip address prefix-list pl-svc-cidr
+      !
+      route-map rm-adv-out permit 30
+      match ip address prefix-list pl-lo-cidr
+      !
+      route-map rm-adv-out permit 40
+      match ip address prefix-list pl-api-vip
+      !
+      ip prefix-list pl-ext-pods seq 10 permit 10.42.0.0/16 ge 24 le 24
+      ip prefix-list pl-ext-net seq 10 permit 10.0.1.0/24
+      ip prefix-list pl-ext-lo seq 10 permit 192.168.10.0/24 ge 32 le 32
+      ip prefix-list pl-ext-svc seq 10 permit 10.43.0.0/16 ge 16 le 32
+      ip prefix-list pl-ext-api seq 10 permit 192.168.8.8/32
+      !
+      route-map rm-pl-ext permit 10
+      match ip address prefix-list pl-ext-pods
+       !
+      route-map rm-pl-ext permit 20
+      match ip address prefix-list pl-ext-net
+       !
+      route-map rm-pl-ext permit 30
+      match ip address prefix-list pl-ext-lo
+       !
+      route-map rm-pl-ext permit 40
+      match ip address prefix-list pl-ext-svc
+       !
+      route-map rm-pl-ext permit 50
+      match ip address prefix-list pl-ext-api
+      !
+      router bgp {{ $config.bgpAS }}
+        bgp router-id {{ $config.routerId }}
+        bgp bestpath as-path multipath-relax
+        neighbor TOR peer-group
+        neighbor TOR remote-as internal
+        neighbor TOR timers 1 3
+        neighbor TOR soft-reconfiguration inbound
+        neighbor {{ index $config "interface-1" }} interface v6only peer-group TOR 
+        bgp fast-convergence
+      !
+      address-family ipv4 unicast
+      network 10.43.0.0/16
+      redistribute kernel
+      redistribute connected
+      neighbor TOR route-map rm-adv-out out
+      neighbor TOR route-map rm-pl-ext in
+      exit-address-family
+      exit
+{{- end }}
