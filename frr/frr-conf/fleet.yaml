@@ -1,0 +1,16 @@
+defaultNamespace: frr-k8s
+helm:
+  chart: ./frr-conf-chart
+  values:
+    # You can override the inventory here if you want
+    nodes:
+      ubuntu:       # Must match label 'kubernetes.io/hostname'
+        routerId: "192.168.10.11"    # Unique Router ID for this node
+        dummyInterfaceIp: "192.168.10.11"   # The Interface IP for dummy0
+        bgpAS: "64530"
+        interface-1: "ens19"
+      ubuntu-2:      # Must match label 'kubernetes.io/hostname'
+        routerId: "192.168.10.12"    # Unique Router ID for this node
+        dummyInterfaceIp: "192.168.10.12"   # The Interface IP for dummy0
+        bgpAS: "64530"
+        interface-1: "ens20"
