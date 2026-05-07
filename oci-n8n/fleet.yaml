@@ -1,8 +1,8 @@
 defaultNamespace: n8n-oci-test
 helm:
-  repo: oci://192.168.8.44/my-charts
-  chart: n8n
-#  version: v1.11.0
+  repo: oci://192.168.8.44/my-charts/n8n
+#  chart: n8n
+  version: 2.0.1
 #  releaseName: n8n
 #  values: []
       
