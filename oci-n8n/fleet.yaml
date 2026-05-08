@@ -1,8 +1,8 @@
 defaultNamespace: n8n-oci-test
 helm:
 #  repo: oci://192.168.8.44/my-charts
-  chart: oci://192.168.8.44:80/my-charts/n8n
-#  chart: oci://repo.australiaeast.cloudapp.azure.com/my-charts/n8n
+#  chart: oci://192.168.8.44:80/my-charts/n8n
+  chart: oci://repo.australiaeast.cloudapp.azure.com/my-charts/n8n
   version: 2.0.1
   releaseName: n8n
 #  values: []
